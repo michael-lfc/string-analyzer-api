@@ -94,6 +94,7 @@ export const getAllStrings = async (req, res) => {
       filters["properties.word_count"] = wc;
     }
 
+
     if (contains_character !== undefined) {
       if (contains_character.length !== 1) return res.status(400).json({ error: "contains_character must be a single character" });
       filters["value"] = { $regex: contains_character, $options: "i" };
