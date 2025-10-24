@@ -118,12 +118,14 @@ export const getAllStrings = async (req, res) => {
   }
 };
 
+
 /**
  * GET /strings/filter-by-natural-language?query=...
  */
 export const filterByNaturalLanguage = async (req, res) => {
   try {
     const { query } = req.query;
+
     if (!query || typeof query !== "string") {
       return res.status(400).json({ error: "Query parameter is required" });
     }
@@ -131,35 +133,62 @@ export const filterByNaturalLanguage = async (req, res) => {
     const queryLower = query.toLowerCase();
     const parsedFilters = {};
 
-    // Palindrome filter
+    // 1️⃣ Palindrome filter
     if (queryLower.includes("palindromic") || queryLower.includes("palindrome")) {
       parsedFilters["properties.is_palindrome"] = true;
     }
 
-    // Word count filter
+    // 2️⃣ Word count filter
     if (queryLower.includes("single word") || queryLower.includes("one word")) {
       parsedFilters["properties.word_count"] = 1;
     } else if (queryLower.includes("word")) {
-      const match = queryLower.match(/(\d+)\s*word/);
-      if (match) parsedFilters["properties.word_count"] = parseInt(match[1]);
+      // Look for a number right before the word "word"
+      const words = queryLower.split(" ");
+      const wordIndex = words.findIndex(w => w.includes("word"));
+      if (wordIndex > 0) {
+        const possibleNumber = parseInt(words[wordIndex - 1]);
+        if (!isNaN(possibleNumber)) {
+          parsedFilters["properties.word_count"] = possibleNumber;
+        }
+      }
     }
 
-    // Length filters
+    // 3️⃣ Length filters
     if (queryLower.includes("longer than") || queryLower.includes("more than")) {
-      const match = queryLower.match(/(\d+)\s*character/);
-      if (match) parsedFilters["properties.length"] = { ...(parsedFilters["properties.length"] || {}), $gte: parseInt(match[1]) + 1 };
+      const words = queryLower.split(" ");
+      const index = words.findIndex(w => w.includes("character"));
+      if (index > 0) {
+        const number = parseInt(words[index - 1]);
+        if (!isNaN(number)) {
+          parsedFilters["properties.length"] = { ...(parsedFilters["properties.length"] || {}), $gte: number + 1 };
+        }
+      }
     }
+
     if (queryLower.includes("shorter than") || queryLower.includes("less than")) {
-      const match = queryLower.match(/(\d+)\s*character/);
-      if (match) parsedFilters["properties.length"] = { ...(parsedFilters["properties.length"] || {}), $lte: parseInt(match[1]) - 1 };
+      const words = queryLower.split(" ");
+      const index = words.findIndex(w => w.includes("character"));
+      if (index > 0) {
+        const number = parseInt(words[index - 1]);
+        if (!isNaN(number)) {
+          parsedFilters["properties.length"] = { ...(parsedFilters["properties.length"] || {}), $lte: number - 1 };
+        }
+      }
     }
 
-    // Character filter
-    const charMatch = queryLower.match(/contain(s|ing)?\s+(?:the\s+)?(letter\s+)?([a-z])/);
-    if (charMatch) {
-      parsedFilters["value"] = { $regex: charMatch[3], $options: "i" };
+    // 4️⃣ Character filter
+    if (queryLower.includes("contain") || queryLower.includes("containing")) {
+      const words = queryLower.split(" ");
+      const containIndex = words.findIndex(w => w.includes("contain"));
+      if (containIndex >= 0 && containIndex + 1 < words.length) {
+        const char = words[containIndex + 1];
+        if (char.length === 1 && /[a-z]/.test(char)) {
+          parsedFilters["value"] = { $regex: char, $options: "i" };
+        }
+      }
     }
 
+    // 5️⃣ Check if any filters were parsed
     if (Object.keys(parsedFilters).length === 0) {
       return res.status(400).json({
         error: "Unable to parse natural language query",
@@ -167,8 +196,10 @@ export const filterByNaturalLanguage = async (req, res) => {
       });
     }
 
+    // 6️⃣ Query MongoDB
     const strings = await StringModel.find(parsedFilters);
 
+    // 7️⃣ Respond
     res.status(200).json({
       data: strings.map(doc => ({
         id: doc.properties.sha256_hash,
@@ -179,6 +210,7 @@ export const filterByNaturalLanguage = async (req, res) => {
       count: strings.length,
       interpreted_query: { original: query, parsed_filters: parsedFilters },
     });
+
   } catch (error) {
     console.error("Error parsing natural language query:", error);
     res.status(500).json({ error: "Internal server error" });
