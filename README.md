@@ -68,4 +68,4 @@ DB_NAME=countrydb
 COUNTRIES_API=https://restcountries.com/v2/all?fields=name,capital,region,population,flag,currencies
 EXCHANGE_API=https://api.exchangerate-api.com/v4/latest/USD
 
-REQUEST_TIMEOUT_MS=10000
+REQUEST_TIMEOUT_MS=10000ho
