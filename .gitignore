@@ -1,0 +1,12 @@
+# Node modules
+node_modules/
+
+# Environment
+.env
+
+# Logs
+*.log
+
+# Cache / generated files
+cache/
+images/
