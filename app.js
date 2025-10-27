@@ -6,6 +6,12 @@ import { sequelize } from './src/config/db.js';
 
 dotenv.config();
 
+// ✅ Ensure cache folder exists before any other code
+if (!fs.existsSync(process.env.CACHE_DIR)) {
+  fs.mkdirSync(process.env.CACHE_DIR, { recursive: true });
+}
+
+
 const app = express();
 app.use(express.json());
 
