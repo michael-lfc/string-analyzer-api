@@ -1,4 +1,4 @@
-import Country from "../models/country.js";
+import Country from "../models/Country.js";
 import { refreshCountries } from '../services/countryService.js';
 import { Op } from 'sequelize';
 import fs from 'fs';
