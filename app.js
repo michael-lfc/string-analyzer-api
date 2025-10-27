@@ -1,5 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import fs from 'fs'
 import countryRoutes from './src/routes/countryRoutes.js';
 import statusRoute from './src/routes/statusRoute.js';
 import { sequelize } from './src/config/db.js';
