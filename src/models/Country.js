@@ -1,13 +1,8 @@
-// src/models/Country.js
 import { DataTypes } from "sequelize";
-import sequelize from "../config/db.js";
+import { sequelize } from "../config/db.js";
 
 const Country = sequelize.define("Country", {
-  id: {
-    type: DataTypes.INTEGER.UNSIGNED,
-    autoIncrement: true,
-    primaryKey: true
-  },
+  id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
   name: { type: DataTypes.STRING, allowNull: false, unique: true },
   capital: { type: DataTypes.STRING, allowNull: true },
   region: { type: DataTypes.STRING, allowNull: true },
@@ -19,10 +14,7 @@ const Country = sequelize.define("Country", {
   last_refreshed_at: { type: DataTypes.DATE, allowNull: true }
 }, {
   tableName: "countries",
-  timestamps: false,
-  indexes: [
-    { fields: ["name"] }
-  ]
+  timestamps: false
 });
 
 export default Country;

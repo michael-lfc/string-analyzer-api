@@ -14,33 +14,41 @@ export async function refreshCountries() {
     throw new Error('API URLs not configured in environment');
   }
 
-  // Fetch external APIs in parallel
-  let countriesData, exchangeData;
-  try {
-    const [cRes, eRes] = await Promise.all([
-      axios.get(COUNTRIES_API, { timeout: TIMEOUT }),
-      axios.get(EXCHANGE_API, { timeout: TIMEOUT })
-    ]);
-    countriesData = cRes.data;
-    exchangeData = eRes.data;
+  let countriesData = [];
+  let exchangeData = {};
 
+  // 1️⃣ Fetch countries
+  try {
+    const res = await axios.get(COUNTRIES_API, { timeout: TIMEOUT });
+    countriesData = res.data;
     if (!Array.isArray(countriesData)) {
       throw new Error('Countries API returned invalid data format');
     }
-    if (!exchangeData || typeof exchangeData.rates !== 'object') {
-      throw new Error('Exchange API returned invalid rates format');
-    }
   } catch (err) {
-    const errName = err.config?.url || 'external API';
-    const e = new Error(`Could not fetch data from ${errName}`);
+    console.error('Failed to fetch countries API:', err.message);
+    const e = new Error('Could not fetch data from countries API');
     e.isExternal = true;
     throw e;
   }
 
-  const rates = exchangeData.rates || {};
-  const processedCountries = [];
+  // 2️⃣ Fetch exchange rates
+  try {
+    const res = await axios.get(EXCHANGE_API, { timeout: TIMEOUT });
+    exchangeData = res.data;
+    if (!exchangeData?.rates || typeof exchangeData.rates !== 'object') {
+      throw new Error('Exchange API returned invalid rates format');
+    }
+  } catch (err) {
+    console.error('Failed to fetch exchange API:', err.message);
+    const e = new Error('Could not fetch data from exchange API');
+    e.isExternal = true;
+    throw e;
+  }
 
-  for (const c of countriesData) {
+  const rates = exchangeData.rates;
+
+  // 3️⃣ Process each country
+  const processedCountries = countriesData.map(c => {
     const name = c.name;
     const capital = c.capital || null;
     const region = c.region || null;
@@ -49,21 +57,28 @@ export async function refreshCountries() {
 
     let currency_code = null;
     let exchange_rate = null;
-    let estimated_gdp = 0;
+    let estimated_gdp = null;
 
+    // Handle currency
     if (Array.isArray(c.currencies) && c.currencies.length > 0 && c.currencies[0]?.code) {
       currency_code = c.currencies[0].code;
       exchange_rate = rates[currency_code] || null;
 
       if (exchange_rate) {
+        // GDP formula: population × random(1000–2000) ÷ exchange_rate
         const multiplier = Math.floor(Math.random() * (2000 - 1000 + 1)) + 1000;
         estimated_gdp = (population * multiplier) / exchange_rate;
       } else {
         estimated_gdp = null;
       }
+    } else {
+      // No currency
+      currency_code = null;
+      exchange_rate = null;
+      estimated_gdp = 0;
     }
 
-    processedCountries.push({
+    return {
       name,
       capital,
       region,
@@ -73,15 +88,15 @@ export async function refreshCountries() {
       estimated_gdp,
       flag_url,
       last_refreshed_at: new Date()
-    });
-  }
+    };
+  });
 
-  // Upsert countries into MySQL
+  // 4️⃣ Upsert countries into DB
   for (const country of processedCountries) {
-    await Country.upsert(country); // matches by primary key or unique constraint (name)
+    await Country.upsert(country); // match by unique name
   }
 
-  // Prepare data for image
+  // 5️⃣ Generate summary image
   const totalCountries = await Country.count();
   const top5Countries = await Country.findAll({
     order: [['estimated_gdp', 'DESC']],
@@ -90,6 +105,7 @@ export async function refreshCountries() {
 
   await generateImageSummary({ totalCountries, top5: top5Countries });
 
+  // 6️⃣ Return refresh info
   return {
     message: 'Countries refreshed successfully',
     total_countries: totalCountries,
