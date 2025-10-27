@@ -31,28 +31,41 @@ export async function refresh(req, res) {
 export async function getCountries(req, res) {
   try {
     const { region, currency, sort, limit = 100, page = 1 } = req.query;
-    const where = {};
-    if (region) where.region = region;
-    if (currency) where.currency_code = currency;
 
+    // 1️⃣ Fetch data from external API if needed
+    const response = await fetch(process.env.COUNTRIES_API);
+    const allCountries = await response.json();
+
+    // 2️⃣ Filter only the fields you want
+    const filteredCountries = allCountries.map(
+      ({ name, capital, region, population, flag, currencies }) => ({
+        name,
+        capital,
+        region,
+        population,
+        flag,
+        currency_code: currencies?.[0]?.code || null
+      })
+    );
+
+    // 3️⃣ Apply query filters
+    let results = filteredCountries;
+    if (region) results = results.filter(c => c.region === region);
+    if (currency) results = results.filter(c => c.currency_code === currency);
+
+    // 4️⃣ Sort results
+    if (sort === "gdp_desc") results.sort((a, b) => b.estimated_gdp - a.estimated_gdp);
+    if (sort === "gdp_asc") results.sort((a, b) => a.estimated_gdp - b.estimated_gdp);
+
+    // 5️⃣ Pagination
     const perPage = Math.min(parseInt(limit, 10) || 100, 1000);
-    const offset = (Math.max(parseInt(page, 10) || 1, 1) - 1) * perPage;
+    const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+    const paginated = results.slice((pageNum - 1) * perPage, pageNum * perPage);
 
-    const order = [];
-    if (sort === 'gdp_desc') order.push(['estimated_gdp', 'DESC']);
-    if (sort === 'gdp_asc') order.push(['estimated_gdp', 'ASC']);
-
-    const countries = await Country.findAll({
-      where,
-      order,
-      limit: perPage,
-      offset
-    });
-
-    res.json(countries);
+    res.json(paginated);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: "Internal server error" });
   }
 }
 
