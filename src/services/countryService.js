@@ -1,5 +1,5 @@
 import axios from 'axios';
-import Country from '../models/country.js';
+import Country from '../models/Country.js';
 import { generateImageSummary } from '../utils/imageGenerator.js';
 
 const COUNTRIES_API = process.env.COUNTRIES_API;
