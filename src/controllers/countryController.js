@@ -25,67 +25,57 @@ export async function refresh(req, res) {
 
 /**
  * GET /countries
+ * Supports filtering by region, currency, sorting, and pagination
  */
 export async function getCountries(req, res) {
   try {
     const { region, currency, sort, limit = 100, page = 1 } = req.query;
 
-    const whereClause = {};
+    const where = {};
+
+    // ✅ Case-insensitive region filter (partial match supported)
     if (region) {
-      // Case-insensitive region filter
-      whereClause.region = sequelize.where(
-        sequelize.fn('LOWER', sequelize.col('region')),
-        region.toLowerCase()
-      );
-    }
-    if (currency) {
-      // Case-insensitive currency filter
-      whereClause.currency_code = sequelize.where(
-        sequelize.fn('LOWER', sequelize.col('currency_code')),
-        currency.toLowerCase()
-      );
+      where.region = { [Op.iLike]: `%${region}%` };
     }
 
+    // ✅ Case-insensitive currency filter (partial match supported)
+    if (currency) {
+      where.currency_code = { [Op.iLike]: `%${currency}%` };
+    }
+
+    // ✅ Sorting logic (ascending or descending GDP)
+    let order = [];
+    if (sort === 'gdp_desc') {
+      order = [['estimated_gdp', 'DESC']];
+    } else if (sort === 'gdp_asc') {
+      order = [['estimated_gdp', 'ASC']];
+    }
+
+    // ✅ Pagination
     const perPage = Math.min(parseInt(limit, 10) || 100, 1000);
     const offset = (Math.max(parseInt(page, 10) || 1, 1) - 1) * perPage;
 
-    const order = [];
-    if (sort === 'gdp_desc') order.push(['estimated_gdp', 'DESC']);
-    if (sort === 'gdp_asc') order.push(['estimated_gdp', 'ASC']);
-
+    // ✅ Fetch from DB
     const countries = await Country.findAll({
-      where: whereClause,
+      where,
       order,
       limit: perPage,
-      offset
+      offset,
     });
 
-    res.json(countries);
+    // ✅ Return consistent JSON structure
+    res.json({
+      total: countries.length,
+      page: Number(page),
+      limit: Number(limit),
+      countries,
+    });
   } catch (err) {
-    console.error(err);
+    console.error('Error fetching countries:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 }
 
-
-/**
- * GET /countries/:name
- */
-export async function getCountryByName(req, res) {
-  try {
-    const { name } = req.params;
-
-    const country = await Country.findOne({
-      where: where(fn('LOWER', col('name')), name.toLowerCase())
-    });
-
-    if (!country) return res.status(404).json({ error: 'Country not found' });
-    res.json(country);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-}
 
 /**
  * DELETE /countries/:name
