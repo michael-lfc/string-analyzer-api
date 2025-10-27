@@ -4,27 +4,7 @@ A RESTful API to fetch country data, currency exchange rates, compute estimated 
 
 This API integrates data from external sources, caches it in a MySQL database, and exposes endpoints to query, filter, sort, and visualize country and economic information. Built with Node.js, Express, and Sequelize, it demonstrates CRUD operations, API integration, and data processing in a backend project.
 
-Table of Contents
-
-Features
-
-Tech Stack
-
-Setup & Installation
-
-Environment Variables
-
-Available Endpoints
-
-Example Requests & Responses
-
-Testing the API
-
-Folder Structure
-
-License
-
-Features
+**Features
 
 Fetch country data: name, capital, region, population, currencies, flag.
 
@@ -42,17 +22,12 @@ Generate and serve a summary image with total countries and top 5 GDP countries.
 
 Proper error handling and input validation.
 
-Tech Stack
+**Tech Stack
 
 Backend: Node.js, Express.js
 
 Database: MySQL, Sequelize ORM
 
-External APIs:
-
-REST Countries API
-
-Exchange Rate API
 
 Utilities: Axios, Canvas
 
