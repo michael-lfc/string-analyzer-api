@@ -1,6 +1,6 @@
 import Country from '../models/Country.js';
 import { refreshCountries } from '../services/countryService.js';
-import { Op, where, fn, col } from 'sequelize';
+import { Op, where as sequelizeWhere, fn, col } from 'sequelize';
 import fs from 'fs';
 import path from 'path';
 
@@ -33,23 +33,26 @@ export async function getCountries(req, res) {
 
     const where = {};
 
-    // ✅ Case-insensitive region filter (partial match supported)
-    if (region) {
-      where.region = { [Op.iLike]: `%${region}%` };
-    }
+if (region) {
+  where.region = sequelizeWhere(fn('LOWER', col('region')), {
+    [Op.like]: `%${region.toLowerCase()}%`,
+  });
+}
 
-    // ✅ Case-insensitive currency filter (partial match supported)
-    if (currency) {
-      where.currency_code = { [Op.iLike]: `%${currency}%` };
-    }
+if (currency) {
+  where.currency_code = sequelizeWhere(fn('LOWER', col('currency_code')), {
+    [Op.like]: `%${currency.toLowerCase()}%`,
+  });
+}
 
-    // ✅ Sorting logic (ascending or descending GDP)
-    let order = [];
+
+let order = [];
     if (sort === 'gdp_desc') {
       order = [['estimated_gdp', 'DESC']];
     } else if (sort === 'gdp_asc') {
       order = [['estimated_gdp', 'ASC']];
     }
+
 
     // ✅ Pagination
     const perPage = Math.min(parseInt(limit, 10) || 100, 1000);
