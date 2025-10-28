@@ -143,3 +143,20 @@ export async function getSummaryImage(req, res) {
     res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+// Get a single country by name
+export async function getCountryByName(req, res) {
+  try {
+    const { name } = req.params;
+    const country = await Country.findOne({ where: { name } });
+
+    if (!country) {
+      return res.status(404).json({ error: 'Country not found' });
+    }
+
+    res.json(country);
+  } catch (error) {
+    console.error('Error fetching country by name:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
