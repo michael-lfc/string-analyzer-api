@@ -11,6 +11,17 @@ const TIMEOUT = parseInt(process.env.REQUEST_TIMEOUT_MS || '10000', 10);
 // Path to fallback JSON (store in your repo, e.g., src/cache/countries.json)
 const FALLBACK_COUNTRIES = path.join(process.cwd(), 'src', 'cache', 'countries.json');
 
+// ✅ Automatically create cache folder and file if missing
+const cacheDir = path.dirname(FALLBACK_COUNTRIES);
+if (!fs.existsSync(cacheDir)) {
+  fs.mkdirSync(cacheDir, { recursive: true });
+  console.log(`✅ Cache folder created at ${cacheDir}`);
+}
+if (!fs.existsSync(FALLBACK_COUNTRIES)) {
+  fs.writeFileSync(FALLBACK_COUNTRIES, '[]', 'utf8');
+  console.log('✅ Empty countries.json created for fallback');
+}
+
 export async function refreshCountries() {
   let countriesData = [];
   let exchangeData = {};
