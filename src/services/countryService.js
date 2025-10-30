@@ -7,7 +7,6 @@ import { generateImageSummary } from '../utils/imageGenerator.js';
 const COUNTRIES_API = process.env.COUNTRIES_API;
 const EXCHANGE_API = process.env.EXCHANGE_API;
 const TIMEOUT = parseInt(process.env.REQUEST_TIMEOUT_MS || '10000', 10);
-
 // Path to fallback JSON (store in your repo, e.g., src/cache/countries.json)
 const FALLBACK_COUNTRIES = path.join(process.cwd(), 'src', 'cache', 'countries.json');
 
@@ -30,11 +29,17 @@ export async function refreshCountries() {
   try {
     const res = await axios.get(COUNTRIES_API, { timeout: TIMEOUT });
     countriesData = res.data;
+
+    // ✅ Save fresh API data to fallback file (for next time)
+    fs.writeFileSync(FALLBACK_COUNTRIES, JSON.stringify(countriesData, null, 2), 'utf8');
+    console.log('✅ Fallback file updated with latest countries data');
+
     if (!Array.isArray(countriesData)) throw new Error('Invalid countries data');
   } catch (err) {
     console.warn('Failed to fetch countries API, using fallback JSON:', err.message);
     if (fs.existsSync(FALLBACK_COUNTRIES)) {
       countriesData = JSON.parse(fs.readFileSync(FALLBACK_COUNTRIES, 'utf8'));
+      console.log('📁 Loaded countries data from fallback cache');
     } else {
       const e = new Error('Could not fetch data from countries API and no fallback available');
       e.isExternal = true;
