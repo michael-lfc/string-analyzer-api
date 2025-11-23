@@ -1,7 +1,7 @@
 # Node modules
 node_modules/
 
-# Environment
+# Environment variables
 .env
 
 # Logs
@@ -10,3 +10,7 @@ node_modules/
 # Cache / generated files
 cache/
 images/
+
+# IDE files
+.vscode/
+.idea/
