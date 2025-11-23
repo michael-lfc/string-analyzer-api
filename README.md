@@ -177,9 +177,6 @@ country-currency-api/
 License
 
 MIT License
-=======
-=======
->>>>>>> 7cac3084d0dc0b2e2eccb09bd36719c1b7954bac
 # String Analyzer API
 
 A RESTful API that analyzes strings and stores their computed properties. Built with **Node.js**, **Express**, and **MongoDB**.  
