@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 Country Currency & Exchange API
 
 A RESTful API to fetch country data, currency exchange rates, compute estimated GDPs, and provide a summary image.
