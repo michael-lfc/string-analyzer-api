@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Country Currency & Exchange API
 
 A RESTful API to fetch country data, currency exchange rates, compute estimated GDPs, and provide a summary image.
@@ -178,6 +179,8 @@ License
 
 MIT License
 =======
+=======
+>>>>>>> 7cac3084d0dc0b2e2eccb09bd36719c1b7954bac
 # String Analyzer API
 
 A RESTful API that analyzes strings and stores their computed properties. Built with **Node.js**, **Express**, and **MongoDB**.  

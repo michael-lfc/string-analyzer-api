@@ -1,7 +1,13 @@
 {
+<<<<<<< HEAD
   "name": "stage2-assignment",
   "version": "1.0.0",
   "description": "API to fetch country data and currency exchange rates + String Analyzer Service",
+=======
+  "name": "stage1-assignment",
+  "version": "1.0.0",
+  "description": "Stage 1 Backend Wizards: String Analyzer Service",
+>>>>>>> 7cac3084d0dc0b2e2eccb09bd36719c1b7954bac
   "main": "app.js",
   "type": "module",
   "scripts": {
@@ -10,6 +16,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
+<<<<<<< HEAD
   "author": "Michael",
   "license": "ISC",
   "dependencies": {
@@ -27,5 +34,16 @@
   },
   "engines": {
     "node": ">=18.0.0"
+=======
+  "author": "Your Name",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.6.1",
+    "express": "^5.1.0",
+    "mongoose": "^8.19.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+>>>>>>> 7cac3084d0dc0b2e2eccb09bd36719c1b7954bac
   }
 }
